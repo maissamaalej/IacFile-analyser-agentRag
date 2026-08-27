@@ -1,0 +1,13 @@
+fastapi
+uvicorn
+sentence-transformers
+torch
+pydantic
+qdrant-client
+unstructured[pdf]
+python-dotenv
+httpx
+langgraph
+python-hcl2
+ollama
+tiktoken
