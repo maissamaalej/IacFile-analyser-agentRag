@@ -1,92 +1,139 @@
-name: AgentRAG CI/CD
+  name: AgentRAG CI/CD
 
-on:
-  push:
-    branches:
-      - master
+  on:
+    push:
+      branches:
+        - master
 
-  workflow_dispatch:
+    workflow_dispatch:
 
-env:
-  REGISTRY: ghcr.io
-  IMAGE_PREFIX: ${{ github.repository_owner }}/agentrag
+  env:
+    DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
 
-jobs:
+  jobs:
 
-  # ==========================================
-  # 1. BUILD SPRING BOOT
-  # ==========================================
+    # ==========================================
+    # 1. BUILD + DOCKER + PUSH SPRING BOOT
+    # ==========================================
 
-  build-backend:
-    name: Build Spring Boot
-    runs-on: ubuntu-latest
+    build-backend:
+      name: Build & Push Spring Boot
+      runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      steps:
+        - name: Checkout
+          uses: actions/checkout@v4
 
-      - name: Setup Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: '17'
-          cache: maven
+        - name: Setup Java
+          uses: actions/setup-java@v4
+          with:
+            distribution: temurin
+            java-version: '17'
+            cache: maven
 
-      - name: Build Backend
-        run: |
-          chmod +x mvnw
-          ./mvnw clean package -DskipTests
+        - name: Build Backend
+          run: |
+            chmod +x mvnw
+            ./mvnw clean package -DskipTests
 
+        - name: Login to Docker Hub
+          uses: docker/login-action@v3
+          with:
+            username: ${{ secrets.DOCKERHUB_USERNAME }}
+            password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-  # ==========================================
-  # 2. BUILD PYTHON AGENT RAG
-  # ==========================================
+        - name: Build Docker image
+          run: |
+            docker build \
+              -t ${{ secrets.DOCKERHUB_USERNAME }}/agentrag-backend:latest .
 
-  build-python:
-    name: Build AgentRAG Python
-    runs-on: ubuntu-latest
+        - name: Push Docker image
+          run: |
+            docker push \
+              ${{ secrets.DOCKERHUB_USERNAME }}/agentrag-backend:latest
+    
 
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+    # ==========================================
+    # 2. BUILD + DOCKER + PUSH PYTHON
+    # ==========================================
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
+    build-python:
+      name: Build & Push AgentRAG Python
+      runs-on: ubuntu-latest
 
-      - name: Install dependencies
-        working-directory: src/main/java/org/example/agentrag/agentic-rag-python
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
+      steps:
+        - name: Checkout
+          uses: actions/checkout@v4
 
+        - name: Setup Python
+          uses: actions/setup-python@v5
+          with:
+            python-version: '3.11'
 
+        - name: Install dependencies
+          working-directory: src/main/java/org/example/agentrag/agentic-rag-python
+          run: |
+            python -m pip install --upgrade pip
+            pip install -r requirements.txt
 
-  # ==========================================
-  # 3. BUILD FRONTEND
-  # ==========================================
+        - name: Login to Docker Hub
+          uses: docker/login-action@v3
+          with:
+            username: ${{ secrets.DOCKERHUB_USERNAME }}
+            password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-  build-frontend:
-    name: Build Angular
-    runs-on: ubuntu-latest
+        - name: Build Docker image
+          run: |
+            docker build \
+              -t ${{ secrets.DOCKERHUB_USERNAME }}/agentrag-python:latest \
+              ./src/main/java/org/example/agentrag/agentic-rag-python
 
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+        - name: Push Docker image
+          run: |
+            docker push \
+              ${{ secrets.DOCKERHUB_USERNAME }}/agentrag-python:latest
+    
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: npm
-          cache-dependency-path: AgentRAGDashboard/package-lock.json
+    # ==========================================
+    # 3. BUILD + DOCKER + PUSH ANGULAR
+    # ==========================================
 
-      - name: Install dependencies
-        working-directory: AgentRAGDashboard
-        run: npm ci
+    build-frontend:
+      name: Build & Push Angular
+      runs-on: ubuntu-latest
 
-      - name: Build Angular
-        working-directory: AgentRAGDashboard
-        run: npm run build
+      steps:
+        - name: Checkout
+          uses: actions/checkout@v4
 
+        - name: Setup Node
+          uses: actions/setup-node@v4
+          with:
+            node-version: '20'
+            cache: npm
+            cache-dependency-path: AgentRAGDashboard/package-lock.json
+
+        - name: Install dependencies
+          working-directory: AgentRAGDashboard
+          run: npm ci
+
+        - name: Build Angular
+          working-directory: AgentRAGDashboard
+          run: npm run build
+
+        - name: Login to Docker Hub
+          uses: docker/login-action@v3
+          with:
+            username: ${{ secrets.DOCKERHUB_USERNAME }}
+            password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+        - name: Build Docker image
+          run: |
+            docker build \
+              -t ${{ secrets.DOCKERHUB_USERNAME }}/agentrag-frontend:latest \
+              ./AgentRAGDashboard
+
+        - name: Push Docker image
+          run: |
+            docker push \
+              ${{ secrets.DOCKERHUB_USERNAME }}/agentrag-frontend:latest
