@@ -3,59 +3,88 @@ name: AgentRAG CI/CD
 on:
   push:
     branches:
-      - main
+      - master
+
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_PREFIX: ${{ github.repository_owner }}/agentrag
 
 jobs:
 
-  build-and-push:
+  # ==========================================
+  # 1. BUILD SPRING BOOT
+  # ==========================================
 
+  build-backend:
+    name: Build Spring Boot
     runs-on: ubuntu-latest
 
-    permissions:
-      contents: read
-      packages: write
-
     steps:
-
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Login to GHCR
-        uses: docker/login-action@v3
+      - name: Setup Java
+        uses: actions/setup-java@v4
         with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          distribution: temurin
+          java-version: '17'
+          cache: maven
 
       - name: Build Backend
         run: |
-          docker build \
-            -t ghcr.io/${{ github.repository_owner }}/agent-rag-backend:latest \
-            .
+          chmod +x mvnw
+          ./mvnw clean package -DskipTests
 
-      - name: Push Backend
-        run: |
-          docker push \
-            ghcr.io/${{ github.repository_owner }}/agent-rag-backend:latest
 
-      - name: Build AgentRAG Python
-        run: |
-          docker build \
-            -t ghcr.io/${{ github.repository_owner }}/agent-rag-python:latest \
-            ./src/main/java/org/example/agentrag/agentic-rag-python
+  # ==========================================
+  # 2. BUILD PYTHON AGENT RAG
+  # ==========================================
 
-      - name: Push AgentRAG Python
-        run: |
-          docker push \
-            ghcr.io/${{ github.repository_owner }}/agent-rag-python:latest
+  build-python:
+    name: Build AgentRAG Python
+    runs-on: ubuntu-latest
 
-      - name: Build Frontend
-        run: |
-          docker build \
-            -t ghcr.io/${{ github.repository_owner }}/agent-rag-frontend:latest \
-            ./frontend
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - name: Push Frontend
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        working-directory: src/main/java/org/example/agentrag/agentic-rag-python
         run: |
-          docker push \
-            ghcr.io/${{ github.repository_owner }}/agent-rag-frontend:latest
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+
+  # ==========================================
+  # 3. BUILD FRONTEND
+  # ==========================================
+
+  build-frontend:
+    name: Build Angular
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build Angular
+        working-directory: frontend
+        run: npm run build
