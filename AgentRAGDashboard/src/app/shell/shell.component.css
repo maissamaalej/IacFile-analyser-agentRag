@@ -1,0 +1,1009 @@
+/* ===========================
+   GLOBAL
+=========================== */
+
+* {
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+}
+
+
+html,
+body {
+
+  height:100%;
+
+  font-family:"Inter",sans-serif;
+
+  background:#1B1B38;
+
+}
+
+
+
+.layout {
+
+  display:flex;
+
+  height:100vh;
+
+  background:#1B1B38;
+
+}
+
+
+
+/* ===========================
+   SIDEBAR
+=========================== */
+
+
+.sidebar {
+
+
+  width:280px;
+
+  height:100vh;
+
+
+  background:#17172b;
+
+
+  display:flex;
+
+  flex-direction:column;
+
+
+  padding:24px;
+
+
+  overflow:hidden;
+
+}
+
+
+
+/* LOGO */
+
+.logo {
+
+
+  display:flex;
+
+  align-items:center;
+
+  gap:14px;
+
+}
+
+
+
+.logo-icon {
+
+
+  width:56px;
+
+  height:56px;
+
+
+  border-radius:16px;
+
+
+  background:linear-gradient(
+    135deg,
+    #7C5CFA,
+    #35E6C5
+  );
+
+
+  display:flex;
+
+  align-items:center;
+
+  justify-content:center;
+
+
+  color:white;
+
+  font-size:24px;
+
+}
+
+
+
+.logo h2 {
+
+
+  color:white;
+
+  font-size:24px;
+
+  font-weight:700;
+
+  margin-bottom:4px;
+
+}
+
+
+
+.logo span {
+
+
+  color:#9CA3C7;
+
+  font-size:12px;
+
+}
+
+
+
+
+
+/* ===========================
+   MENU
+=========================== */
+
+
+.menu {
+
+
+  margin-top:35px;
+
+
+  display:flex;
+
+  flex-direction:column;
+
+
+  gap:10px;
+
+
+  flex:1;
+
+
+  min-height:0;
+
+}
+
+
+
+
+/* menu normal */
+
+.menu > a {
+
+
+  display:flex;
+
+  align-items:center;
+
+
+  gap:14px;
+
+
+  padding:14px 18px;
+
+
+  color:#B9BDE2;
+
+
+  text-decoration:none;
+
+
+  border-radius:14px;
+
+
+  transition:.25s;
+
+}
+
+
+
+.menu > a i {
+
+
+  font-size:17px;
+
+}
+
+
+
+
+.menu > a:hover {
+
+
+  background:rgba(124,92,250,.8);
+
+  color:white;
+
+}
+
+
+
+
+.menu > a.active {
+
+
+  background:linear-gradient(
+      90deg,
+      rgba(124,92,250,.95),
+      rgba(90,63,232,.95)
+  );
+
+
+  color:white;
+
+
+  font-weight:600;
+
+
+  box-shadow:0 10px 25px rgba(113,84,226,.25);
+
+}
+
+
+
+
+/* ===========================
+   HISTORY SCROLL
+=========================== */
+
+
+.chat-menu {
+
+
+  overflow-y:auto;
+
+  overflow-x:hidden;
+
+
+  padding-right:6px;
+
+}
+
+
+
+
+.chat-menu::-webkit-scrollbar {
+
+  width:6px;
+
+}
+
+
+
+.chat-menu::-webkit-scrollbar-track {
+
+  background:transparent;
+
+}
+
+
+
+.chat-menu::-webkit-scrollbar-thumb {
+
+
+  background:#7C5CFA;
+
+  border-radius:20px;
+
+}
+
+
+
+
+.menu-title {
+
+
+  margin-top:20px;
+
+  margin-bottom:10px;
+
+
+  padding-left:12px;
+
+
+  color:#8f93b8;
+
+
+  font-size:12px;
+
+
+  font-weight:600;
+
+
+  text-transform:uppercase;
+
+}
+
+
+
+
+/* ===========================
+   CHAT HISTORY ITEMS
+=========================== */
+
+
+.chat-item {
+
+
+  position:relative;
+
+
+  display:flex;
+
+
+  align-items:center;
+
+
+  width:100%;
+
+
+  border-radius:14px;
+
+
+}
+
+
+
+/* chat link */
+
+.chat-item a {
+
+
+  flex:1;
+
+
+  display:flex;
+
+
+  align-items:center;
+
+
+  gap:14px;
+
+
+  padding:12px 45px 12px 18px;
+
+
+  color:#B9BDE2;
+
+
+  text-decoration:none;
+
+
+  border-radius:14px;
+
+
+  overflow:hidden;
+
+
+  transition:.25s;
+
+}
+
+
+
+.chat-item a i {
+
+
+  font-size:15px;
+
+  flex-shrink:0;
+
+}
+
+
+
+.chat-item a span {
+
+
+  white-space:nowrap;
+
+
+  overflow:hidden;
+
+
+  text-overflow:ellipsis;
+
+
+  font-size:14px;
+
+}
+
+
+
+
+
+.chat-item:hover a {
+
+
+  background:rgba(124,92,250,.25);
+
+
+  color:white;
+
+}
+
+
+
+
+
+/* ===========================
+   THREE DOT BUTTON
+=========================== */
+
+
+.chat-menu-btn {
+
+
+  position:absolute;
+
+
+  right:8px;
+
+
+  width:32px;
+
+
+  height:32px;
+
+
+  display:flex;
+
+
+  align-items:center;
+
+
+  justify-content:center;
+
+
+  border:none;
+
+
+  border-radius:8px;
+
+
+  background:transparent;
+
+
+  color:white;
+
+
+  opacity:0;
+
+
+  cursor:pointer;
+
+
+  transition:.2s;
+
+}
+
+
+
+
+.chat-item:hover .chat-menu-btn {
+
+
+  opacity:1;
+
+}
+
+
+
+
+.chat-menu-btn:hover {
+
+
+  background:rgba(255,255,255,.25);
+
+}
+
+
+
+
+.chat-menu-btn i {
+
+
+  font-size:18px;
+
+}
+
+
+
+
+
+/* ===========================
+   CHAT ACTION MENU
+=========================== */
+
+
+.chat-actions {
+
+
+  position:absolute;
+
+
+  right:5px;
+
+
+  top:45px;
+
+
+  width:130px;
+
+
+  background:#202038;
+
+
+  border:1px solid rgba(255,255,255,.08);
+
+
+  border-radius:12px;
+
+
+  padding:6px;
+
+
+  z-index:300;
+
+
+  box-shadow:
+  0 15px 30px rgba(0,0,0,.35);
+
+}
+
+
+
+
+.chat-actions button {
+
+
+  width:100%;
+
+
+  display:flex;
+
+
+  align-items:center;
+
+
+  gap:10px;
+
+
+  padding:10px;
+
+
+  background:transparent;
+
+
+  border:none;
+
+
+  color:white;
+
+
+  cursor:pointer;
+
+
+  border-radius:8px;
+
+
+  font-size:14px;
+
+}
+
+
+
+
+.chat-actions button:hover {
+
+
+  background:rgba(124,92,250,.3);
+
+}
+
+
+
+
+/* ===========================
+   SIDEBAR FOOTER
+=========================== */
+
+
+.sidebar-footer button {
+
+
+  width:100%;
+
+
+  border:none;
+
+
+  border-radius:15px;
+
+
+  background:linear-gradient(
+      135deg,
+      #7C5CFA,
+      #5A3FE8
+  );
+
+
+  color:white;
+
+
+  font-size:17px;
+
+
+  padding:15px;
+
+
+  cursor:pointer;
+
+
+  transition:.3s;
+
+}
+
+
+
+
+.sidebar-footer button:hover {
+
+
+  transform:translateY(-2px);
+
+
+  box-shadow:
+  0 10px 25px rgba(124,92,250,.35);
+
+}
+
+
+
+
+.sidebar-footer i {
+
+
+  margin-right:8px;
+
+}
+
+
+
+
+
+/* ===========================
+   MAIN
+=========================== */
+
+
+.main {
+
+
+  flex:1;
+
+
+  display:flex;
+
+
+  flex-direction:column;
+
+
+  background:#1B1B38;
+
+}
+
+
+
+
+/* HEADER */
+
+
+.header {
+
+
+  height:95px;
+
+
+  background:#17172b;
+
+
+  border-bottom:
+  1px solid rgba(255,255,255,.05);
+
+
+  display:flex;
+
+
+  justify-content:space-between;
+
+
+  align-items:center;
+
+
+  padding:0 40px;
+
+}
+
+
+
+
+.header h3 {
+
+
+  color:white;
+
+
+  font-size:24px;
+
+
+}
+
+
+
+.header p {
+
+
+  color:#9CA3C7;
+
+
+  font-size:14px;
+
+}
+
+
+
+
+
+/* PROFILE */
+
+
+.profile {
+
+
+  display:flex;
+
+
+  align-items:center;
+
+
+  gap:12px;
+
+
+  background:rgba(255,255,255,.04);
+
+
+  padding:10px 18px;
+
+
+  border-radius:50px;
+
+
+}
+
+
+
+.profile i {
+
+
+  color:#35E6C5;
+
+
+  font-size:28px;
+
+}
+
+
+
+.profile span {
+
+
+  color:white;
+
+
+}
+
+
+
+
+/* CONTENT */
+
+
+.content {
+
+
+  flex:1;
+
+
+  padding:35px;
+
+
+  overflow:auto;
+
+}
+
+
+
+
+/* CARD */
+
+
+.card {
+
+
+  background:#1D1D39;
+
+
+  border-radius:22px;
+
+
+  border:
+  1px solid rgba(255,255,255,.05);
+
+
+  padding:25px;
+
+
+  color:white;
+
+
+  box-shadow:
+  0 15px 30px rgba(0,0,0,.25);
+
+}
+
+
+
+
+
+/* ===========================
+   SCROLLBAR GLOBAL
+=========================== */
+
+
+::-webkit-scrollbar {
+
+
+  width:10px;
+
+}
+
+
+
+::-webkit-scrollbar-thumb {
+
+
+  background:#7C5CFA;
+
+
+  border-radius:20px;
+
+}
+
+
+
+::-webkit-scrollbar-track {
+
+
+  background:#17172b;
+
+}
+
+
+
+
+
+/* ===========================
+   RESPONSIVE
+=========================== */
+
+
+@media(max-width:992px){
+
+
+.sidebar{
+
+
+ width:90px;
+
+ padding:20px 12px;
+
+}
+
+
+
+.logo div:last-child{
+
+
+ display:none;
+
+}
+
+
+
+.menu > a span{
+
+
+ display:none;
+
+}
+
+
+
+.menu > a{
+
+
+ justify-content:center;
+
+}
+
+
+
+.sidebar-footer button{
+
+
+ font-size:0;
+
+}
+
+
+
+.sidebar-footer button i{
+
+
+ font-size:24px;
+
+}
+
+
+
+.header{
+
+
+ padding:20px;
+
+}
+
+
+
+}
+
+
+
+@media(max-width:768px){
+
+
+.header{
+
+
+ flex-direction:column;
+
+
+ height:auto;
+
+
+ align-items:flex-start;
+
+
+ gap:15px;
+
+
+ padding:20px;
+
+}
+
+
+
+.profile{
+
+
+ align-self:flex-end;
+
+}
+
+
+}

@@ -1,0 +1,230 @@
+
+<div class="layout">
+
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+
+    <div class="logo">
+
+      <div class="logo-icon">
+        <i class="bi bi-shield-check"></i>
+      </div>
+
+      <div>
+        <h2>AgentRAG AI</h2>
+        <span>Cloud Infrastructure Intelligence</span>
+      </div>
+
+    </div>
+
+
+    <nav class="menu" [class.chat-menu]="isChatPage">
+
+  <!-- Menu Dashboard -->
+  <ng-container *ngIf="!isChatPage">
+
+    <a routerLink="/dashboard" routerLinkActive="active">
+      <i class="bi bi-grid"></i>
+      Dashboard
+    </a>
+
+    <a routerLink="/chat" routerLinkActive="active">
+      <i class="bi bi-chat-left-text"></i>
+      AI Assistant
+    </a>
+
+    <a routerLink="/reports" routerLinkActive="active">
+      <i class="bi bi-file-earmark-text"></i>
+      Reports
+    </a>
+     <div class="sidebar-footer">
+
+
+      <button (click)="logout()">
+    <i class="bi bi-box-arrow-right"></i>
+    Logout
+  </button>
+
+
+    </div>
+
+  </ng-container>
+
+  <!-- Menu AI Assistant -->
+  <ng-container *ngIf="isChatPage">
+
+    <a routerLink="/dashboard">
+      <i class="bi bi-arrow-left"></i>
+      Dashboard
+    </a>
+
+    <a (click)="newConversation()">
+      <i class="bi bi-plus-circle"></i>
+      New Conversation
+    </a>
+
+    <div class="menu-title">
+  Pinned
+</div>
+
+<div
+  class="chat-item"
+  *ngFor="let chat of pinnedChats">
+
+  <!-- Chat -->
+  <a (click)="openChat(chat)">
+    <i class="bi bi-pin-angle-fill"></i>
+    <span>{{ chat.title }}</span>
+  </a>
+
+  <!-- Bouton menu -->
+  <button
+    class="chat-menu-btn"
+    (click)="toggleChatMenu(chat.id); $event.stopPropagation()">
+
+    <i class="bi bi-three-dots"></i>
+
+  </button>
+
+  <!-- Menu -->
+  <div
+    class="chat-actions"
+    *ngIf="activeMenuChatId === chat.id">
+
+    <button (click)="pinChat(chat)">
+      <i class="bi bi-pin-angle-fill"></i>
+      Unpin
+    </button>
+
+    <button (click)="deleteChat(chat)">
+      <i class="bi bi-trash"></i>
+      Delete
+    </button>
+
+  </div>
+
+</div>
+
+    <div class="menu-title">
+  History
+</div>
+
+
+<div 
+  class="chat-item"
+  *ngFor="let chat of historyChats">
+
+
+  <!-- Chat link -->
+  <a (click)="openChat(chat)">
+
+    <i class="bi bi-clock-history"></i>
+
+    <span>
+      {{chat.title}}
+    </span>
+
+  </a>
+
+
+
+  <!-- 3 points -->
+  <button
+    class="chat-menu-btn"
+    (click)="toggleChatMenu(chat.id); $event.stopPropagation()">
+
+      <i class="bi bi-three-dots"></i>
+
+  </button>
+
+
+
+  <!-- Dropdown -->
+  <div
+    class="chat-actions"
+    *ngIf="activeMenuChatId === chat.id">
+
+
+      <button (click)="pinChat(chat)">
+
+      <i class="bi bi-pin-angle"></i>
+
+      {{chat.pinned ? 'Unpin':'Pin'}}
+
+      </button>
+
+
+      <button
+        (click)="deleteChat(chat)">
+          <i class="bi bi-trash"></i>
+          Delete
+      </button>
+
+
+  </div>
+
+
+</div>
+
+  </ng-container>
+
+</nav>
+
+
+   
+
+
+  </aside>
+
+
+
+  <!-- Main -->
+  <main class="main">
+
+
+      <!-- Header -->
+      <header class="header">
+
+
+          <div>
+              <h3>
+                Azure Infrastructure Agent
+              </h3>
+
+              <p>
+                Analyze and optimize your cloud architecture
+              </p>
+          </div>
+
+
+
+          <div class="profile">
+
+              <i class="bi bi-person-circle"></i>
+
+              <span>
+                User
+              </span>
+
+          </div>
+
+
+      </header>
+
+
+
+      <!-- Pages -->
+      <section class="content">
+
+          <router-outlet
+(activate)="onActivate($event)">
+</router-outlet>
+
+      </section>
+
+
+  </main>
+
+
+</div>

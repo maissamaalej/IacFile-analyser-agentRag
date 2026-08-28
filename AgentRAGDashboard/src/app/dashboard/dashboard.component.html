@@ -1,0 +1,83 @@
+<div class="stats">
+
+  <div class="card">
+    <h4>Infrastructure Score</h4>
+    <h2>87%</h2>
+  </div>
+
+  <div class="card">
+    <h4>Average Score</h4>
+    <h2>{{averageScore | number:'1.2-2'}}</h2>
+  </div>
+
+  <div class="card">
+    <h4>Analyses</h4>
+    <h2>{{totalEvaluations}}</h2>
+  </div>
+
+  <div class="card">
+    <h4>Latency</h4>
+    <h2>145 ms</h2>
+  </div>
+
+</div>
+
+
+
+<div class="charts">
+
+  <div class="card">
+
+    <h4>
+      Hallucination Rate
+    </h4>
+
+    <h2>
+      {{hallucinationRate | number:'1.1-2'}} %
+    </h2>
+
+  </div>
+
+
+
+  <div class="card">
+
+    <h4>
+      Grounded Score
+    </h4>
+
+    <h2>
+      {{averageScore | number:'1.2-2'}}
+    </h2>
+
+  </div>
+
+
+
+  <div class="card">
+
+    <h4>
+      Evaluations
+    </h4>
+
+    <h2>
+      {{totalEvaluations}}
+    </h2>
+
+  </div>
+
+
+
+  <div class="card">
+
+    <h4>
+      Hallucination Rate Over Time
+    </h4>
+
+    <canvas
+      id="hallucinationChart">
+    </canvas>
+
+  </div>
+
+</div>

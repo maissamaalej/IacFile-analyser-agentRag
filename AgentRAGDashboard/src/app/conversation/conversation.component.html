@@ -1,0 +1,172 @@
+<div class="chat-container">
+
+
+  <!-- Empty state : nouvelle conversation -->
+  <div class="empty-chat" *ngIf="messages.length === 0">
+
+    <div class="assistant-icon">
+      <i class="bi bi-robot"></i>
+    </div>
+
+
+    <h1>
+      Hello 👋
+    </h1>
+
+
+    <p>
+      I am your Azure Infrastructure Agent.
+    </p>
+
+
+    <p class="description">
+      I can analyze your cloud infrastructure,
+      check compliance with Azure Best Practices,
+      detect issues and propose corrections.
+    </p>
+
+
+  </div>
+
+
+
+  <!-- Messages -->
+  <div class="chat-body" *ngIf="messages.length > 0">
+
+    <div class="msg-row"
+         *ngFor="let msg of messages"
+         [ngClass]="msg.role">
+
+      <div class="msg-stack">
+
+
+        <div class="msg-file" *ngIf="msg.file">
+          <span>
+            {{msg.file.name}}
+          </span>
+        </div>
+
+
+        <div class="msg-bubble" *ngIf="msg.text">
+          {{msg.text}}
+        </div>
+
+
+        <div class="msg-bubble" *ngIf="msg.resources?.length">
+
+
+          <div class="result-list">
+
+            <div class="result-row"
+                 *ngFor="let r of msg.resources"
+                 [ngClass]="statusClass(r.status)">
+
+              <div class="result-id">
+                {{r.id}}
+              </div>
+
+
+              <span class="badge"
+                    [ngClass]="statusClass(r.status)">
+                {{statusLabel(r.status)}}
+              </span>
+
+            </div>
+
+          </div>
+
+
+          <div class="source-note"
+               *ngIf="msg.explanation">
+
+              {{msg.explanation}}
+
+          </div>
+
+
+          <button class="fix-btn"
+                  *ngIf="msg.showFixAction"
+                  (click)="requestFix(msg)">
+
+              Proposer une correction
+
+          </button>
+
+
+        </div>
+
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+
+
+  <!-- Input toujours visible -->
+  <div class="chat-input-bar">
+
+
+    <button class="attach-btn"
+            (click)="fileInput.click()">
+
+      <i class="bi bi-paperclip"></i>
+
+    </button>
+
+
+    <input #fileInput
+           type="file"
+           hidden
+           (change)="onFileSelected($event)"
+           accept=".tf,.json,.bicep"/>
+
+
+
+    <span class="attached-chip"
+          *ngIf="pendingFile">
+
+        {{pendingFile.name}}
+
+        <span class="remove"
+              (click)="removePendingFile()">
+
+            ✕
+
+        </span>
+
+    </span>
+
+<div class="thinking" *ngIf="isProcessing">
+
+    <div class="thinking-spinner"></div>
+
+    <span>Azure Infrastructure Agent is thinking...</span>
+
+</div>
+
+  <textarea
+      class="chat-input"
+      placeholder="Ask me anything about Azure..."
+      [(ngModel)]="draftMessage"
+      [disabled]="isProcessing"
+      (keydown.enter)="handleEnter($event)">
+</textarea>
+
+
+    <button
+        class="send-btn"
+        (click)="sendMessage()"
+        [disabled]="isProcessing || (!draftMessage && !pendingFile)">
+
+    Send
+
+</button>
+
+
+  </div>
+
+
+</div>

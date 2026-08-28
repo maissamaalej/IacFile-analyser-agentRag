@@ -1,0 +1,81 @@
+.score-card {
+
+  background:white;
+
+  border-radius:18px;
+
+  padding:22px;
+
+  display:flex;
+
+  align-items:center;
+
+  gap:18px;
+
+  box-shadow:
+  0 10px 30px rgba(0,0,0,0.06);
+
+  transition:.3s;
+
+}
+
+
+.score-card:hover {
+
+  transform:translateY(-5px);
+
+  box-shadow:
+  0 15px 35px rgba(37,99,235,.15);
+
+}
+
+
+
+/* icon */
+
+.icon {
+
+  width:55px;
+
+  height:55px;
+
+  border-radius:15px;
+
+  background:#eff6ff;
+
+  color:#2563eb;
+
+  display:flex;
+
+  justify-content:center;
+
+  align-items:center;
+
+  font-size:25px;
+
+}
+
+
+
+.info h4 {
+
+  margin:0;
+
+  font-size:14px;
+
+  color:#6b7280;
+
+}
+
+
+.value {
+
+  margin-top:8px;
+
+  font-size:32px;
+
+  font-weight:700;
+
+  color:#111827;
+
+}
