@@ -1,0 +1,73 @@
+  apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    name: agentrag-mysql
+    namespace: agentrag
+
+  spec:
+    replicas: 1
+
+    strategy:
+      type: Recreate
+
+    selector:
+      matchLabels:
+        app: agentrag-mysql
+
+    template:
+      metadata:
+        labels:
+          app: agentrag-mysql
+
+      spec:
+        containers:
+          - name: mysql
+            image: mysql:8.4
+            imagePullPolicy: IfNotPresent
+
+            ports:
+              - name: mysql
+                containerPort: 3306
+
+            env:
+              - name: MYSQL_ROOT_PASSWORD
+                valueFrom:
+                  secretKeyRef:
+                    name: agentrag-mysql-secret
+                    key: MYSQL_ROOT_PASSWORD
+
+              - name: MYSQL_DATABASE
+                valueFrom:
+                  secretKeyRef:
+                    name: agentrag-mysql-secret
+                    key: MYSQL_DATABASE
+
+              - name: MYSQL_USER
+                valueFrom:
+                  secretKeyRef:
+                    name: agentrag-mysql-secret
+                    key: MYSQL_USER
+
+              - name: MYSQL_PASSWORD
+                valueFrom:
+                  secretKeyRef:
+                    name: agentrag-mysql-secret
+                    key: MYSQL_PASSWORD
+
+            volumeMounts:
+              - name: mysql-storage
+                mountPath: /var/lib/mysql
+
+            resources:
+              requests:
+                cpu: "250m"
+                memory: "512Mi"
+
+              limits:
+                cpu: "1"
+                memory: "1Gi"
+
+        volumes:
+          - name: mysql-storage
+            persistentVolumeClaim:
+              claimName: agentrag-mysql-pvc

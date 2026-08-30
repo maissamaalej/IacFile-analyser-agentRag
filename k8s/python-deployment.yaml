@@ -1,0 +1,40 @@
+  apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    name: agentrag-python
+    namespace: agentrag
+  spec:
+    replicas: 1
+
+    strategy:
+      type: RollingUpdate
+      rollingUpdate:
+        maxSurge: 1
+        maxUnavailable: 0
+
+    selector:
+      matchLabels:
+        app: agentrag-python
+
+    template:
+      metadata:
+        labels:
+          app: agentrag-python
+
+      spec:
+        containers:
+          - name: python
+            image: maissamaalej3/agentrag-python:latest
+            imagePullPolicy: Always
+
+            ports:
+              - name: http
+                containerPort: 8000
+
+            resources:
+              requests:
+                cpu: "500m"
+                memory: "1Gi"
+              limits:
+                cpu: "2"
+                memory: "4Gi"
