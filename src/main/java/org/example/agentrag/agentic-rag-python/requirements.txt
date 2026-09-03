@@ -11,3 +11,4 @@ langgraph
 python-hcl2
 ollama
 tiktoken
+python-multipart
