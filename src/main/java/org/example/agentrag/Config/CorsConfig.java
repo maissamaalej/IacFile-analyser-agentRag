@@ -26,7 +26,8 @@ public class CorsConfig {
 
         config.setAllowedOrigins(
                 List.of(
-                        "http://localhost:4200"
+                        "http://localhost:4200",
+                        "http://agentrag.local"
                 )
         );
 
