@@ -18,7 +18,7 @@ export interface AgentResponse {
 })
 export class ChatMessageService {
 
-  private apiUrl = 'http://localhost:8080/api/chatMessage';
+  private apiUrl = '/api/chatMessage';
 
   constructor(private http: HttpClient) {}
 

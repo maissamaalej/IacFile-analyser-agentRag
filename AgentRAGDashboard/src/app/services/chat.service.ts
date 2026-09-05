@@ -14,7 +14,7 @@ export interface CreateChatRequest {
 })
 export class ChatService {
 
-  private apiUrl = 'http://localhost:8080/api/Chat';
+  private apiUrl = '/api/Chat';
 
   constructor(private http: HttpClient) {}
 
