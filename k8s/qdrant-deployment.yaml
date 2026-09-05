@@ -1,51 +1,49 @@
-  apiVersion: apps/v1
-  kind: Deployment
-  metadata:
-    name: agentrag-qdrant
-    namespace: agentrag
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: agentrag-qdrant
+  namespace: agentrag
+spec:
+  replicas: 1
 
-  spec:
-    replicas: 1
+  strategy:
+    type: Recreate
 
-    strategy:
-      type: Recreate
+  selector:
+    matchLabels:
+      app: agentrag-qdrant
 
-    selector:
-      matchLabels:
+  template:
+    metadata:
+      labels:
         app: agentrag-qdrant
 
-    template:
-      metadata:
-        labels:
-          app: agentrag-qdrant
+    spec:
+      containers:
+        - name: qdrant
+          image: qdrant/qdrant:latest
+          imagePullPolicy: IfNotPresent
 
-      spec:
-        containers:
-          - name: qdrant
-            image: qdrant/qdrant:latest
-            imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 6333
 
-            ports:
-              - name: http
-                containerPort: 6333
+            - name: grpc
+              containerPort: 6334
 
-              - name: grpc
-                containerPort: 6334
+          volumeMounts:
+            - name: qdrant-storage
+              mountPath: /qdrant/storage
 
-            volumeMounts:
-              - name: qdrant-storage
-                mountPath: /qdrant/storage
+          resources:
+            requests:
+              cpu: "200m"
+              memory: "512Mi"
+            limits:
+              cpu: "1"
+              memory: "2Gi"
 
-            resources:
-              requests:
-                cpu: "250m"
-                memory: "512Mi"
-
-              limits:
-                cpu: "1"
-                memory: "2Gi"
-
-        volumes:
-          - name: qdrant-storage
-            persistentVolumeClaim:
-              claimName: agentrag-qdrant-pvc
+      volumes:
+        - name: qdrant-storage
+          persistentVolumeClaim:
+            claimName: agentrag-qdrant-pvc

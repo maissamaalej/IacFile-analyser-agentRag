@@ -1,41 +1,54 @@
-  apiVersion: apps/v1
-  kind: Deployment
-  metadata:
-    name: agentrag-backend
-    namespace: agentrag
-  spec:
-    replicas: 1
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: agentrag-backend
+  namespace: agentrag
+spec:
+  replicas: 1
 
-    strategy:
-      type: RollingUpdate
-      rollingUpdate:
-        maxSurge: 1
-        maxUnavailable: 0
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
 
-    selector:
-      matchLabels:
+  selector:
+    matchLabels:
+      app: agentrag-backend
+
+  template:
+    metadata:
+      labels:
         app: agentrag-backend
 
-    template:
-      metadata:
-        labels:
-          app: agentrag-backend
+    spec:
+      containers:
+        - name: backend
+          image: maissamaalej3/agentrag-backend:latest
+          imagePullPolicy: Always
 
-      spec:
-        containers:
-          - name: backend
-            image: maissamaalej3/agentrag-backend:latest
-            imagePullPolicy: Always
+          env:
+            - name: SPRING_DATASOURCE_URL
+              value: jdbc:mysql://agentrag-mysql:3306/agentrag
 
-            ports:
-              - name: http
-                containerPort: 8080
+            - name: SPRING_DATASOURCE_USERNAME
+              value: root
 
-            resources:
-              requests:
-                cpu: "250m"
-                memory: "512Mi"
-              limits:
-                cpu: "1"
-                memory: "1Gi"
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: agentrag-mysql-secret
+                  key: MYSQL_ROOT_PASSWORD
 
+          ports:
+            - name: http
+              containerPort: 8080
+
+          resources:
+            requests:
+              cpu: "200m"
+              memory: "512Mi"
+
+            limits:
+              cpu: "1"
+              memory: "1Gi"

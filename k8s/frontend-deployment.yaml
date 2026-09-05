@@ -1,40 +1,41 @@
-  apiVersion: apps/v1
-  kind: Deployment
-  metadata:
-    name: agentrag-frontend
-    namespace: agentrag
-  spec:
-    replicas: 1
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: agentrag-frontend
+  namespace: agentrag
+spec:
+  replicas: 1
 
-    strategy:
-      type: RollingUpdate
-      rollingUpdate:
-        maxSurge: 1
-        maxUnavailable: 0
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
 
-    selector:
-      matchLabels:
+  selector:
+    matchLabels:
+      app: agentrag-frontend
+
+  template:
+    metadata:
+      labels:
         app: agentrag-frontend
 
-    template:
-      metadata:
-        labels:
-          app: agentrag-frontend
+    spec:
+      containers:
+        - name: frontend
+          image: maissamaalej3/agentrag-frontend:latest
+          imagePullPolicy: Always
 
-      spec:
-        containers:
-          - name: frontend
-            image: maissamaalej3/agentrag-frontend:latest
-            imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 80
 
-            ports:
-              - name: http
-                containerPort: 80
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
 
-            resources:
-              requests:
-                cpu: "100m"
-                memory: "128Mi"
-              limits:
-                cpu: "500m"
-                memory: "512Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"

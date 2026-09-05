@@ -1,0 +1,18 @@
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: agentrag-pool
+  namespace: metallb-system
+spec:
+  addresses:
+    - 192.168.117.110-192.168.117.120
+
+---
+apiVersion: metallb.io/v1beta1
+kind: L2Advertisement
+metadata:
+  name: agentrag-l2
+  namespace: metallb-system
+spec:
+  ipAddressPools:
+    - agentrag-pool
