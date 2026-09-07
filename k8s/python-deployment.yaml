@@ -85,20 +85,33 @@ spec:
           # =========================
           # HEALTH CHECKS
           # =========================
+
+          # Donne jusqu'à 5 minutes à FastAPI
+          # pour charger le modèle au démarrage.
+          startupProbe:
+            httpGet:
+              path: /docs
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 30
+
+          # Vérifie si le pod est prêt à recevoir
+          # des requêtes.
           readinessProbe:
             httpGet:
               path: /docs
               port: http
-            initialDelaySeconds: 20
             periodSeconds: 10
             timeoutSeconds: 5
-            failureThreshold: 3
+            failureThreshold: 6
 
+          # Vérifie que l'application reste fonctionnelle
+          # après son démarrage.
           livenessProbe:
             httpGet:
               path: /docs
               port: http
-            initialDelaySeconds: 40
             periodSeconds: 20
             timeoutSeconds: 5
             failureThreshold: 3
