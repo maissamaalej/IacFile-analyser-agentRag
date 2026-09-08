@@ -13,7 +13,8 @@ public class AgentRagClientServiceImpl implements AgentRagClientService {
 
     public AgentRagClientServiceImpl(WebClient.Builder builder) {
         this.webClient = builder
-                .baseUrl("http://localhost:8001")
+                .baseUrl("http://agentrag-python:8000")
+                //.baseUrl("http://localhost:8001")
                 .build();
     }
 
