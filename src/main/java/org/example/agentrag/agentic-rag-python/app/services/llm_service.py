@@ -15,7 +15,6 @@ logger = logging.getLogger(__name__)
 
 class LLMService:
 
-
     def __init__(self):
 
         # Agent model
@@ -24,21 +23,22 @@ class LLMService:
             "qwen2.5-coder:7b"
         )
 
-
         # Judge model
         self.judge_model = os.getenv(
             "OLLAMA_JUDGE_MODEL",
             "qwen2.5:7b-instruct"
         )
 
-
         self.max_context_tokens = 32000
-
 
         self.encoder = tiktoken.get_encoding(
             "cl100k_base"
         )
 
+        # Ollama client
+        self.client = ollama.Client(
+            host="http://127.0.0.1:11434"
+        )
 
         logger.info(
             f"Agent model : {self.model}"
@@ -48,7 +48,9 @@ class LLMService:
             f"Judge model : {self.judge_model}"
         )
 
-
+        logger.info(
+            "Ollama host : http://127.0.0.1:11434"
+        )
 
     # ======================================
     # Token counter
@@ -56,11 +58,10 @@ class LLMService:
 
     def count_tokens(
             self,
-            messages: List[Dict[str,Any]]
+            messages: List[Dict[str, Any]]
     ):
 
         total = 0
-
 
         for message in messages:
 
@@ -69,15 +70,11 @@ class LLMService:
                 ""
             )
 
-
             total += len(
                 self.encoder.encode(content)
             )
 
-
         return total
-
-
 
     # ======================================
     # Context validation
@@ -88,24 +85,19 @@ class LLMService:
             messages
     ):
 
-
         tokens = self.count_tokens(
             messages
         )
 
-
         logger.info(
             f"Prompt tokens : {tokens}"
         )
-
 
         if tokens > self.max_context_tokens:
 
             raise Exception(
                 f"Context too large {tokens}"
             )
-
-
 
     # ======================================
     # Ollama common call
@@ -127,27 +119,25 @@ class LLMService:
 
     ):
 
-
         self.validate_context(
             messages
         )
 
-
         kwargs = {}
-
 
         if json_mode:
 
             kwargs["format"] = "json"
 
+        logger.info(
+            f"Calling Ollama | model={model}"
+        )
 
-
-        response = ollama.chat(
+        response = self.client.chat(
 
             model=model,
 
             messages=messages,
-
 
             options={
 
@@ -155,22 +145,17 @@ class LLMService:
 
                 "num_predict": max_tokens,
 
-                "top_p":0.1
+                "top_p": 0.1
 
             },
-
 
             **kwargs
 
         )
 
-
-
         logger.info(
             response
         )
-
-
 
         content = response.get(
             "message",
@@ -180,20 +165,13 @@ class LLMService:
             ""
         )
 
-
-
         if not content:
 
             raise Exception(
                 "Empty Ollama response"
             )
 
-
-
         return content
-
-
-
 
     # ======================================
     # Agent generation
@@ -213,7 +191,6 @@ class LLMService:
 
     ):
 
-
         return await self._call_ollama(
 
             model=self.model,
@@ -227,9 +204,6 @@ class LLMService:
             json_mode=json_mode
 
         )
-
-
-
 
     # ======================================
     # Judge generation
@@ -247,7 +221,6 @@ class LLMService:
 
     ):
 
-
         return await self._call_ollama(
 
             model=self.judge_model,
@@ -261,8 +234,6 @@ class LLMService:
             json_mode=True
 
         )
-
-
 
 
 llm_service = LLMService()
