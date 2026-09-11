@@ -1,31 +1,58 @@
-import { Component,OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
+
 import { ChatService } from '../services/chat.service';
 import { ChatMessageService } from '../services/chat-message.service';
 import { Chat } from '../interfaces/chat';
-import { ActivatedRoute } from '@angular/router';
 
-export type ResourceStatus = 'compliant' | 'warning' | 'critical';
+
+export type ResourceStatus =
+  'compliant'
+  | 'warning'
+  | 'critical';
+
 
 export interface ResourceResult {
+
   id: string;
+
   status: ResourceStatus;
+
 }
+
 
 export interface ChatMessage {
+
   role: 'user' | 'assistant';
+
   text?: string;
-  file?: { name: string };
+
+  file?: {
+    name: string;
+  };
+
   resources?: ResourceResult[];
+
   explanation?: string;
+
   showFixAction?: boolean;
+
 }
 
+
 @Component({
+
   selector: 'app-conversation',
+
   templateUrl: './conversation.component.html',
+
   styleUrls: ['./conversation.component.css']
+
 })
+
+
 export class ConversationComponent implements OnInit {
+
 
   draftMessage = '';
 
@@ -37,225 +64,346 @@ export class ConversationComponent implements OnInit {
 
   isProcessing = false;
 
+
   constructor(
+
     private chatService: ChatService,
+
     private chatMessageService: ChatMessageService,
+
     private route: ActivatedRoute
+
   ) {}
 
- ngOnInit(){
 
-    this.route.queryParams.subscribe(params=>{
+  ngOnInit(): void {
 
+    this.route.queryParams.subscribe(params => {
 
-        // Nouvelle conversation
-        if(params['new']){
+      /*
+       * Nouvelle conversation
+       */
+      if (params['new']) {
 
-            this.currentChatId = null;
+        this.currentChatId = null;
 
-            this.messages = [];
+        this.messages = [];
 
-            this.draftMessage = '';
+        this.draftMessage = '';
 
-            this.pendingFile = null;
-
-            return;
-
-        }
-
-
-
-        const id=params['chatId'];
-
-
-        if(id){
-
-            this.currentChatId = +id;
-
-            this.loadMessages();
-
-        }
-
-
-    });
-
-}
-loadMessages(){
-
-    if(this.currentChatId==null){
+        this.pendingFile = null;
 
         return;
 
+      }
+
+
+      /*
+       * Conversation existante
+       */
+      const id = params['chatId'];
+
+
+      if (id) {
+
+        this.currentChatId = +id;
+
+        this.loadMessages();
+
+      }
+
+    });
+
+  }
+
+
+  /*
+   * Charger les anciens messages
+   */
+  loadMessages(): void {
+
+    if (this.currentChatId === null) {
+
+      return;
+
     }
 
+
     this.chatMessageService
-    .getMessages(this.currentChatId)
-    .subscribe({
+      .getMessages(this.currentChatId)
+      .subscribe({
 
-        next:(messages:any[])=>{
+        next: (messages: any[]) => {
 
-            this.messages = messages.map(m=>({
+          this.messages = messages.map(m => ({
 
-                role:m.sender==="USER"
-                    ? "user"
-                    : "assistant",
+            role:
+              m.sender === 'USER'
+                ? 'user'
+                : 'assistant',
 
-                text:m.content
+            text: m.content
 
-            }));
+          }));
 
         },
 
-        error:err=>{
 
-            console.error(err);
+        error: err => {
+
+          console.error(
+            'Erreur chargement messages:',
+            err
+          );
 
         }
 
-    });
+      });
 
-}
+  }
 
+
+  /*
+   * Envoyer un message
+   */
   sendMessage(): void {
 
-    if ((!this.draftMessage.trim() && !this.pendingFile) || this.isProcessing) {
+    if (
+
+      (!this.draftMessage.trim() && !this.pendingFile)
+
+      || this.isProcessing
+
+    ) {
+
       return;
+
     }
 
-    const prompt = this.draftMessage;
 
-    // afficher immédiatement le message utilisateur
+    const prompt = this.draftMessage.trim();
+
+
+    /*
+     * Afficher immédiatement
+     * le message utilisateur
+     */
     this.messages.push({
+
       role: 'user',
+
       text: prompt
+
     });
+
 
     this.draftMessage = '';
 
     this.isProcessing = true;
 
-    // première conversation
+
+    /*
+     * Première conversation
+     */
     if (this.currentChatId === null) {
+
       this.createChat(prompt);
+
       return;
+
     }
 
+
     this.sendPromptToAgent(prompt);
+
   }
 
+
+  /*
+   * Créer une conversation
+   */
   createChat(firstMessage: string): void {
 
     const request = {
+
       title: firstMessage.substring(0, 40)
+
     };
 
-    this.chatService.createChat(request).subscribe({
 
-      next: (chat: Chat) => {
+    this.chatService
+      .createChat(request)
+      .subscribe({
 
-        this.currentChatId = chat.id;
+        next: (chat: Chat) => {
 
-        console.log('Chat créé :', chat);
+          this.currentChatId = chat.id;
 
-        this.sendPromptToAgent(firstMessage);
+          console.log(
+            'Chat créé:',
+            chat
+          );
 
-      },
 
-      error: err => {
+          this.sendPromptToAgent(
+            firstMessage
+          );
 
-        this.isProcessing = false;
+        },
 
-        console.error(err);
 
-      }
+        error: err => {
 
-    });
+          this.isProcessing = false;
+
+          console.error(
+            'Erreur création chat:',
+            err
+          );
+
+        }
+
+      });
 
   }
 
+
+  /*
+   * Envoyer le prompt à AgentRAG
+   */
   sendPromptToAgent(message: string): void {
 
-    if (this.currentChatId == null) {
+    if (this.currentChatId === null) {
+
       this.isProcessing = false;
+
       return;
+
     }
 
-    this.chatMessageService.sendMessage(
 
-      this.currentChatId,
+    this.chatMessageService
+      .sendMessage(
 
-      {
-        message: message
-      }
+        this.currentChatId,
 
-    ).subscribe({
+        {
+          message: message
+        }
 
-      next: response => {
-         console.log("Response =", response);
+      )
+      .subscribe({
 
-        this.messages.push({
+        next: response => {
 
-          role: 'assistant',
+          console.log(
+            'Response =',
+            response
+          );
 
-          text: response.answer,
 
-          resources: response.resources,
+          this.messages.push({
 
-          explanation: response.explanation,
+            role: 'assistant',
 
-          showFixAction: response.showFixAction
+            text: response.answer,
 
-        });
+            resources: response.resources,
 
-        this.isProcessing = false;
+            explanation: response.explanation,
 
-      },
+            showFixAction:
+              response.showFixAction
 
-      error: err => {
+          });
 
-        console.error("Erreur AgentRAG", err);
 
-        this.messages.push({
+          this.isProcessing = false;
 
-          role: 'assistant',
+        },
 
-          text: 'An error occurred while processing your request.'
 
-        });
+        error: err => {
 
-        this.isProcessing = false;
+          console.error(
+            'Erreur AgentRAG:',
+            err
+          );
 
-      }
 
-    });
+          this.messages.push({
+
+            role: 'assistant',
+
+            text:
+              'An error occurred while processing your request.'
+
+          });
+
+
+          this.isProcessing = false;
+
+        }
+
+      });
 
   }
 
+
+  /*
+   * Sélection fichier
+   */
   onFileSelected(event: Event): void {
 
-    const input = event.target as HTMLInputElement;
+    const input =
+      event.target as HTMLInputElement;
 
-    if (input.files && input.files.length > 0) {
 
-      this.pendingFile = input.files[0];
+    if (
+
+      input.files
+
+      && input.files.length > 0
+
+    ) {
+
+      this.pendingFile =
+        input.files[0];
 
     }
 
   }
 
+
+  /*
+   * Supprimer fichier
+   */
   removePendingFile(): void {
 
     this.pendingFile = null;
 
   }
 
+
+  /*
+   * Demander une correction
+   */
   requestFix(msg: ChatMessage): void {
 
-    console.log(msg);
+    console.log(
+      'Fix requested:',
+      msg
+    );
 
   }
 
-  statusClass(status: ResourceStatus): string {
+
+  /*
+   * Classe CSS selon le statut
+   */
+  statusClass(
+    status: ResourceStatus
+  ): string {
 
     return {
 
@@ -269,7 +417,13 @@ loadMessages(){
 
   }
 
-  statusLabel(status: ResourceStatus): string {
+
+  /*
+   * Label selon le statut
+   */
+  statusLabel(
+    status: ResourceStatus
+  ): string {
 
     return {
 
@@ -283,23 +437,68 @@ loadMessages(){
 
   }
 
-  handleEnter(event: Event){
+handlePaste(event: ClipboardEvent): void {
+  event.preventDefault();
 
-  const keyboardEvent = event as KeyboardEvent;
+  const clipboardData = event.clipboardData;
 
-
-  if(keyboardEvent.shiftKey){
-
+  if (!clipboardData) {
     return;
-
   }
 
+  const pastedText = clipboardData.getData('text/plain');
 
-  keyboardEvent.preventDefault();
+  if (!pastedText) {
+    return;
+  }
 
+  const textarea = event.target as HTMLTextAreaElement;
 
-  this.sendMessage();
+  const start = textarea.selectionStart ?? 0;
+  const end = textarea.selectionEnd ?? 0;
 
+  const currentValue = this.draftMessage || '';
+
+  this.draftMessage =
+    currentValue.substring(0, start) +
+    pastedText +
+    currentValue.substring(end);
+
+  setTimeout(() => {
+    const newPosition = start + pastedText.length;
+
+    textarea.selectionStart = newPosition;
+    textarea.selectionEnd = newPosition;
+  });
 }
+  /*
+   * Gestion Enter / Shift + Enter
+   */
+  handleEnter(event: Event): void {
+
+    const keyboardEvent =
+      event as KeyboardEvent;
+
+
+    /*
+     * Shift + Enter
+     * = nouvelle ligne
+     */
+    if (keyboardEvent.shiftKey) {
+
+      return;
+
+    }
+
+
+    /*
+     * Enter
+     * = envoyer
+     */
+    keyboardEvent.preventDefault();
+
+    this.sendMessage();
+
+  }
 
 }
