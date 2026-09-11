@@ -47,9 +47,22 @@
         </div>
 
 
-        <div class="msg-bubble" *ngIf="msg.text">
-          {{msg.text}}
-        </div>
+        <div
+  class="msg-bubble"
+  *ngIf="msg.text"
+  [ngClass]="{'markdown-message': msg.role === 'assistant'}">
+
+  <!-- Message utilisateur -->
+  <ng-container *ngIf="msg.role === 'user'; else assistantMessage">
+    {{ msg.text }}
+  </ng-container>
+
+  <!-- Réponse AgentRAG -->
+  <ng-template #assistantMessage>
+    <markdown [data]="msg.text"></markdown>
+  </ng-template>
+
+</div>
 
 
         <div class="msg-bubble" *ngIf="msg.resources?.length">
@@ -148,11 +161,17 @@
 </div>
 
   <textarea
-      class="chat-input"
-      placeholder="Ask me anything about Azure..."
-      [(ngModel)]="draftMessage"
-      [disabled]="isProcessing"
-      (keydown.enter)="handleEnter($event)">
+  #chatInput
+  class="chat-input"
+  placeholder="Ask me anything about Azure..."
+  [(ngModel)]="draftMessage"
+  [disabled]="isProcessing"
+  (keydown.enter)="handleEnter($event)"
+  (paste)="handlePaste($event)"
+  spellcheck="false"
+  autocomplete="off"
+  autocorrect="off"
+  autocapitalize="off">
 </textarea>
 
 
