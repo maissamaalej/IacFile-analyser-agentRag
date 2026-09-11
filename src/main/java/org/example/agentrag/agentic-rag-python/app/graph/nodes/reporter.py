@@ -25,15 +25,30 @@ async def reporter_node(
                 {
                     "role": "assistant",
                     "content": (
-                        "Unable to generate the validation report."
+                        "Unable to generate the response."
                     ),
                 }
-            ]
+            ],
+            "answer": "Unable to generate the response.",
+            "final_answer": "Unable to generate the response.",
+            "status": "error",
         }
 
     # ==============================================================
     # READ STATE
     # ==============================================================
+
+    prompt = str(
+        state.get(
+            "prompt",
+            "",
+        )
+        or ""
+    ).strip()
+
+    terraform_code = state.get(
+        "terraform_code"
+    )
 
     validation_status = str(
         state.get(
@@ -99,32 +114,81 @@ async def reporter_node(
         or ""
     ).strip()
 
+    fixed_terraform = state.get(
+        "fixed_terraform"
+    )
+
+    changes = state.get(
+        "changes",
+        [],
+    )
+
+    if not isinstance(
+            changes,
+            list,
+    ):
+        changes = []
+
+    retrieved_documents = state.get(
+        "retrieved_documents",
+        [],
+    )
+
+    if not isinstance(
+            retrieved_documents,
+            list,
+    ):
+        retrieved_documents = []
+
+    reranked_documents = state.get(
+        "reranked_documents",
+        [],
+    )
+
+    if not isinstance(
+            reranked_documents,
+            list,
+    ):
+        reranked_documents = []
+
     # ==============================================================
-    # GENERATE REPORT
+    # GENERATE RESPONSE
     # ==============================================================
 
     answer = ""
 
     try:
 
-        terraform_code = state.get(
-            "terraform_code",
-            "",
-        )
+        result = await reporter_service.generate_report(
 
-        # ----------------------------------------------------------
-        # IMPORTANT:
-        # Use the method that actually exists in ReporterService.
-        # ----------------------------------------------------------
+            prompt=prompt,
 
-        result =  reporter_service.generate_iac_report(
             terraform_code=terraform_code,
+
             findings=findings,
+
             recommendations=recommendations,
+
             score=score,
+
             status=validation_status,
+
             validation_summary=validation_summary,
+
+            error=error,
+
+            fixed_terraform=fixed_terraform,
+
+            changes=changes,
+
+            reranked_documents=reranked_documents,
+
+            retrieved_documents=retrieved_documents,
         )
+
+        # ==========================================================
+        # EXTRACT ANSWER
+        # ==========================================================
 
         if isinstance(
                 result,
@@ -165,20 +229,52 @@ async def reporter_node(
             exc,
         )
 
+        if terraform_code:
+
+            answer = (
+                "Unable to generate the Azure "
+                "Infrastructure Validation Report."
+            )
+
+        else:
+
+            answer = (
+                "Unable to generate the Azure "
+                "documentation answer."
+            )
+
     # ==============================================================
     # FALLBACK
     # ==============================================================
 
     if not answer.strip():
 
-        answer = _build_fallback_report(
-            validation_status=validation_status,
-            score=score,
-            findings=findings,
-            recommendations=recommendations,
-            validation_summary=validation_summary,
-            error=error,
-        )
+        if not terraform_code:
+
+            if reranked_documents or retrieved_documents:
+
+                answer = (
+                    "The Azure documentation was retrieved, "
+                    "but no answer could be generated."
+                )
+
+            else:
+
+                answer = (
+                    "No Azure documentation was found "
+                    "for this question."
+                )
+
+        else:
+
+            answer = _build_fallback_report(
+                validation_status=validation_status,
+                score=score,
+                findings=findings,
+                recommendations=recommendations,
+                validation_summary=validation_summary,
+                error=error,
+            )
 
     # ==============================================================
     # LANGGRAPH MESSAGE
@@ -194,25 +290,50 @@ async def reporter_node(
         len(answer),
     )
 
+    logger.info(
+        "Reporter mode=%s",
+        "IaC" if terraform_code else "RAG",
+    )
+
+    # ==============================================================
+    # RETURN STATE
+    # ==============================================================
+
     return {
+
         "messages": [
             assistant_message
         ],
+
         "answer": answer,
+
         "final_answer": answer,
 
         "validation_status": validation_status,
+
         "overall_status": validation_status,
-        "status": validation_status,
+
+        "status": (
+            "completed"
+            if not terraform_code
+            else validation_status
+        ),
 
         "score": score,
+
         "findings": findings,
+
         "recommendations": recommendations,
+
         "validation_summary": validation_summary,
 
         "report_generated": True,
     }
 
+
+# ==================================================================
+# FALLBACK IAC REPORT
+# ==================================================================
 
 def _build_fallback_report(
         validation_status: str,
@@ -255,6 +376,10 @@ def _build_fallback_report(
 
     lines.append("")
 
+    # ==============================================================
+    # VALIDATION ERROR
+    # ==============================================================
+
     if validation_status == "Validation Error":
 
         lines.append(
@@ -272,6 +397,10 @@ def _build_fallback_report(
         )
 
         lines.append("")
+
+    # ==============================================================
+    # FINDINGS
+    # ==============================================================
 
     elif findings:
 
@@ -437,6 +566,10 @@ def _build_fallback_report(
 
             lines.append("")
 
+    # ==============================================================
+    # NO FINDINGS
+    # ==============================================================
+
     else:
 
         lines.append(
@@ -450,6 +583,10 @@ def _build_fallback_report(
         )
 
         lines.append("")
+
+    # ==============================================================
+    # SUMMARY
+    # ==============================================================
 
     lines.append(
         "## Summary"
@@ -550,3 +687,4 @@ def _build_fallback_report(
     return "\n".join(
         lines
     )
+
