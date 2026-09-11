@@ -16,7 +16,7 @@ import { ScoreCardComponent } from './components/score-card/score-card.component
 import { HallucinationChartComponent } from './components/hallucination-chart/hallucination-chart.component';
 import { FeedbackChartComponent } from './components/feedback-chart/feedback-chart.component';
 import { AuthInterceptor } from './services/auth-interceptor.service';
- 
+ import { MarkdownModule } from 'ngx-markdown';
 @NgModule({
   declarations: [
     AppComponent,
@@ -36,6 +36,7 @@ import { AuthInterceptor } from './services/auth-interceptor.service';
     AppRoutingModule,
     FormsModule,
     CommonModule,
+    MarkdownModule.forRoot(),
     RouterModule,
     ReactiveFormsModule,
     HttpClientModule
