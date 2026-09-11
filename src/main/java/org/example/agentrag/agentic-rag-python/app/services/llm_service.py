@@ -17,17 +17,27 @@ class LLMService:
 
     def __init__(self):
 
+        # ======================================
         # Agent model
+        # ======================================
+
         self.model = os.getenv(
             "OLLAMA_MODEL",
             "qwen2.5-coder:7b"
         )
 
+        # ======================================
         # Judge model
+        # ======================================
+
         self.judge_model = os.getenv(
             "OLLAMA_JUDGE_MODEL",
             "qwen2.5:7b-instruct"
         )
+
+        # ======================================
+        # Context configuration
+        # ======================================
 
         self.max_context_tokens = 32000
 
@@ -35,10 +45,36 @@ class LLMService:
             "cl100k_base"
         )
 
-        # Ollama client
-        self.client = ollama.Client(
-            host="http://127.0.0.1:11434"
+        # ======================================
+        # Ollama configuration
+        # ======================================
+        #
+        # IMPORTANT:
+        # Do NOT hardcode 127.0.0.1 here.
+        #
+        # Inside Kubernetes:
+        #   127.0.0.1 = the Python container itself
+        #
+        # Ollama is running on:
+        #   192.168.1.11:11434
+        #
+        # Kubernetes already provides:
+        #   OLLAMA_HOST=http://192.168.1.11:11434
+        #
+        # ======================================
+
+        self.ollama_host = os.getenv(
+            "OLLAMA_HOST",
+            "http://192.168.1.11:11434"
         )
+
+        self.client = ollama.Client(
+            host=self.ollama_host
+        )
+
+        # ======================================
+        # Logs
+        # ======================================
 
         logger.info(
             f"Agent model : {self.model}"
@@ -49,7 +85,7 @@ class LLMService:
         )
 
         logger.info(
-            "Ollama host : http://127.0.0.1:11434"
+            f"Ollama host : {self.ollama_host}"
         )
 
     # ======================================
@@ -59,7 +95,7 @@ class LLMService:
     def count_tokens(
             self,
             messages: List[Dict[str, Any]]
-    ):
+    ) -> int:
 
         total = 0
 
@@ -82,8 +118,8 @@ class LLMService:
 
     def validate_context(
             self,
-            messages
-    ):
+            messages: List[Dict[str, Any]]
+    ) -> None:
 
         tokens = self.count_tokens(
             messages
@@ -96,7 +132,9 @@ class LLMService:
         if tokens > self.max_context_tokens:
 
             raise Exception(
-                f"Context too large {tokens}"
+                f"Context too large: "
+                f"{tokens} tokens "
+                f"(maximum: {self.max_context_tokens})"
             )
 
     # ======================================
@@ -104,24 +142,22 @@ class LLMService:
     # ======================================
 
     async def _call_ollama(
-
             self,
+            model: str,
+            messages: List[Dict[str, Any]],
+            temperature: float,
+            max_tokens: int,
+            json_mode: bool = False
+    ) -> str:
 
-            model,
-
-            messages,
-
-            temperature,
-
-            max_tokens,
-
-            json_mode=False
-
-    ):
-
+        # Validate context
         self.validate_context(
             messages
         )
+
+        # ==================================
+        # Ollama options
+        # ==================================
 
         kwargs = {}
 
@@ -130,8 +166,14 @@ class LLMService:
             kwargs["format"] = "json"
 
         logger.info(
-            f"Calling Ollama | model={model}"
+            f"Calling Ollama | "
+            f"host={self.ollama_host} | "
+            f"model={model}"
         )
+
+        # ==================================
+        # Call Ollama
+        # ==================================
 
         response = self.client.chat(
 
@@ -153,9 +195,18 @@ class LLMService:
 
         )
 
+        # ==================================
+        # Log response
+        # ==================================
+
         logger.info(
-            response
+            f"Ollama response received | "
+            f"model={model}"
         )
+
+        # ==================================
+        # Extract content
+        # ==================================
 
         content = response.get(
             "message",
@@ -178,18 +229,12 @@ class LLMService:
     # ======================================
 
     async def generate(
-
             self,
-
-            messages,
-
-            temperature=0,
-
-            max_tokens=2000,
-
-            json_mode=False
-
-    ):
+            messages: List[Dict[str, Any]],
+            temperature: float = 0,
+            max_tokens: int = 2000,
+            json_mode: bool = False
+    ) -> str:
 
         return await self._call_ollama(
 
@@ -210,16 +255,11 @@ class LLMService:
     # ======================================
 
     async def generate_judge(
-
             self,
-
-            messages,
-
-            temperature=0,
-
-            max_tokens=100
-
-    ):
+            messages: List[Dict[str, Any]],
+            temperature: float = 0,
+            max_tokens: int = 100
+    ) -> str:
 
         return await self._call_ollama(
 
@@ -235,5 +275,9 @@ class LLMService:
 
         )
 
+
+# ==========================================
+# Global LLM service instance
+# ==========================================
 
 llm_service = LLMService()
