@@ -55,11 +55,11 @@ class IngestionPipeline:
 
         for i, doc in enumerate(documents[:5]):
             print(f"\nDocument {i+1}")
-        print("Category:", getattr(doc, "category", None))
-        print("Page:", getattr(doc.metadata, "page_number", None))
-        print("Text:")
-        print(repr(str(doc)))
-        print("-" * 100)
+            print("Category:", getattr(doc, "category", None))
+            print("Page:", getattr(doc.metadata, "page_number", None))
+            print("Text:")
+            print(repr(str(doc)))
+            print("-" * 100)
 
 
         print(
