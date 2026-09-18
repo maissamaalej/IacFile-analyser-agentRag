@@ -1,7 +1,8 @@
 import logging
 from typing import List, Any
 
-from unstructured.partition.pdf import partition_pdf
+from pdfminer.high_level import extract_pages
+from pdfminer.layout import LTTextContainer
 
 
 logger = logging.getLogger(__name__)
@@ -9,52 +10,55 @@ logger = logging.getLogger(__name__)
 
 class PDFLoader:
 
+    def __init__(self):
+        pass
 
-    def __init__(
-            self,
-            strategy="fast"
-    ):
-        self.strategy = strategy
-
-
-
-    async def load(
-            self,
-            file_path:str
-    ) -> List[Any]:
+    async def load(self, file_path: str) -> List[Any]:
 
         try:
+            documents = []
 
-            elements = partition_pdf(
+            for page_number, page_layout in enumerate(
+                extract_pages(file_path),
+                start=1
+            ):
+                text_parts = []
 
-                filename=file_path,
+                for element in page_layout:
+                    if isinstance(element, LTTextContainer):
+                        text_parts.append(element.get_text())
 
-                strategy=self.strategy,
+                text = "".join(text_parts).strip()
 
-                include_page_breaks=True,
+                if not text:
+                    continue
 
-                # garde seulement extraction texte
-                infer_table_structure=False
+                document = type(
+                    "PDFDocument",
+                    (),
+                    {
+                        "page_content": text,
+                        "metadata": {
+                            "page_number": page_number
+                        },
+                        "__str__": lambda self: self.page_content
+                    }
+                )()
 
-            )
-
+                documents.append(document)
 
             logger.info(
-                f"{len(elements)} elements loaded"
+                f"{len(documents)} pages with text loaded from {file_path}"
             )
 
-
-            return elements
-
+            return documents
 
         except Exception as e:
-
             logger.error(
-                f"PDF loading failed: {e}"
+                f"PDF loading failed: {e}",
+                exc_info=True
             )
-
             raise
-
 
 
 pdf_loader = PDFLoader()
